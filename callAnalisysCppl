@@ -1,0 +1,138 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Dec 14 04:40:04 2021
+
+@author: IsraelRdz
+"""
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+#*******************TypeFile***************************
+
+cpct=pd.read_csv('10022022coppelcatMX.csv')
+cpct=cpct.drop(['Country','Customer','CustSIPDefinition','TotalMinutes','AnsweredCalls',
+                    'ASR','ABR','ACD','PDD','AnsweredCalls','TotalMinutes'], axis=1)
+cpct.set_index('Type',inplace=True)
+
+cpctTOTAL=cpct['Attempts'].sum()
+
+cpctCPP=(cpct.loc[['CPP'],['Attempts']].sum())
+porceCPP=(cpctCPP/cpctTOTAL*100)
+cpctFIXED=(cpct.loc[['FIXED'],['Attempts']].sum())
+porceFIXED=(cpctFIXED/cpctTOTAL*100)
+cpctMPP=(cpct.loc[['MPP'],['Attempts']].sum())
+porceMPP=(cpctMPP/cpctTOTAL*100)
+porceTotal=porceCPP+porceFIXED+porceMPP
+
+cpctData= {'TIPO DE TRÁFICO':['CPP','FIXED','MPP','TOTALES:'],'INTENTOS':
+              [int(cpctCPP),int(cpctFIXED),int(cpctMPP),int(cpctTOTAL)],'          %':
+                  [float(round(porceCPP,2)),float(round(porceFIXED,2)),
+                   float(round(porceMPP,2)),float(round(porceTotal))]}
+CoppelCatType=pd.DataFrame(cpctData)    
+CoppelCatType.to_csv('CoppelCatType.csv', index=False)
+
+#********************OperadorFile******************
+
+
+cpct['LMC']=cpct['LMC'].replace(['ALESTRA','ALTAN','AXTEL',
+                                                 'CABLECOM','CABLEMAS','CABLEVISION',
+                                                 'CABLEVISIONRED','CELMAX','DIRECTO',
+                                                 'FREEDOMPOP','IBO CELL','MARCATELCOM',
+                                                 'MAXCOM','MCM','MEGACABLE',
+                                                 'METRORED','OMETEL','OPERBES',
+                                                 'PROTEL I-NEXT','QBOCEL','SERVITRON',
+                                                 'STARSATEL','TBD','TELECOMUNICACIONES 360',
+                                                 'TOTAL PLAY','TV CABLE','TV INTERNACIONAL',
+                                                 'TV REY','UC TELECOM','VPN'],'Otros Operadores')
+
+cpct.set_index('LMC',inplace=True)
+
+operTotal=cpct['Attempts'].sum()
+operTelcel=(cpct.loc[['TELCEL'],['Attempts']].sum())
+porceTelcel=(operTelcel/operTotal*100)
+operMovistar=(cpct.loc[['MOVISTAR'],['Attempts']].sum())
+porceMovistar=(operMovistar/operTotal*100)
+operTelmex=(cpct.loc[['TELMEX'],['Attempts']].sum())
+porceTelmex=(operTelmex/operTotal*100)
+operAtt=(cpct.loc[['AT&T'],['Attempts']].sum())
+porceAtt=(operAtt/operTotal*100)
+operOtros=(cpct.loc[['Otros Operadores'],['Attempts']].sum())
+porceOtros=(operOtros/operTotal*100)
+porceOpepTotal=porceTelcel+porceMovistar+porceTelmex+porceAtt+porceOtros
+
+operData= {'OPERADOR':['TELCEL','MOVISTAR','TELMEX','AT&T','Otros Operadores','Total general'],
+           'INTENTOS':[int(operTelcel),int(operMovistar),
+                       int(operTelmex),int(operAtt),int(operOtros),
+                       int(operTotal)],
+           'PORCENTAJE':[float(round(porceTelcel,2)),float(round(porceMovistar,2)),
+                          float(round(porceTelmex,2)),float(round(porceAtt,2)),
+                          float(round(porceOtros,2)),float(round(porceOpepTotal))]}
+
+Operadores=pd.DataFrame(operData)
+Operadores.to_csv('CoppelCatOperator.csv', index=False)
+
+#***********************SIPFile*******************
+
+cpct['CustSIPCause']=cpct['CustSIPCause'].replace([0,500,408,400,403,410,415,433,484,486,488,501,502,504,603,606,604],503)
+
+cpct.set_index('CustSIPCause',inplace=True)
+
+sipTotal=cpct['Attempts'].sum()
+
+sip200=(cpct.loc[[200],['Attempts']].sum())
+porce200=(sip200/sipTotal*100)
+
+sip480=(cpct.loc[[480],['Attempts']].sum())
+porce480=(sip480/sipTotal*100)
+
+sip487=(cpct.loc[[487],['Attempts']].sum())
+porce487=(sip487/sipTotal*100)
+
+sip404=(cpct.loc[[404],['Attempts']].sum())
+porce404=(sip404/sipTotal*100)
+
+sipOtras=(cpct.loc[[503],['Attempts']].sum())
+porceOtras=(sipOtras/sipTotal*100)
+
+porceSipTotal=porce200+porce480+porce487+porce404+porceOtras
+
+sipData= {'CAUSA SIP':['200 Conectada','480 Fuera de servicio','487 Abandonada','404 No existe','Otras causas','Total general'],
+          'INTENTOS':[int(sip200),int(sip480),int(sip487),int(sip404),int(sipOtras),int(sipTotal)],
+          'PORCENTAJE':[float(round(porce200,2)),float(round(porce480,2)),float(round(porce487,2)),float(round(porce404,2)),float(round(porceOtras,2)),float(round(porceSipTotal))]}
+
+sipCause=pd.DataFrame(sipData)
+sipCause.to_csv('CoppelCatSIP.csv', index=False)
+
+#***************TypeGrafico*********************
+TraficType = ['CPP','FIXED','MPP']
+Inten = [int(cpctCPP),int(cpctFIXED),int(cpctMPP)]
+colores = ['#3498db','#e74c3c','#a9a9a9']
+plt.pie(x=Inten, labels=None, colors = colores, explode = (0.1,0.1,0.1), 
+        startangle=150, radius=1.2, autopct='%1.2f%%', shadow=True)
+plt.legend(TraficType,bbox_to_anchor=(1.5, 0.65))
+plt.title('TIPO DE TRÁFICO', weight='bold', size=14)
+#plt.savefig('TipoTrafico'+'.png')
+plt.show()
+
+#***************OperatorGrafico*****************
+TraficOperator = ['TELCEL','MOVISTAR','TELMEX','AT&T','Otros Operadores']
+Inten = [int(operTelcel),int(operMovistar),int(operTelmex),int(operAtt),int(operOtros)]
+colores = ['#3498db','#e74c3c','#a9a9a9','#ffcc00','#009933']
+plt.pie(x=Inten, labels=None, colors = colores, explode = (0.1,0.1,0.1,0.1,0.1), 
+        startangle=90, radius=1.2, autopct='%1.2f%%', shadow=True)
+plt.legend(TraficOperator,bbox_to_anchor=(1.5, 0.65))
+plt.title('TRÁFICO POR OPERADOR', weight='bold', size=14)
+#plt.savefig('TraficoOperador'+'.png')
+plt.show()
+
+#***************SIPGrafico**********************
+traficSip = ['200 Conectada','480 Fuera de servicio','487 Abandonada','404 No existe','Otras causas']
+Inten = [int(sip200),int(sip480),int(sip487),int(sip404),int(sipOtras)]
+colores = ['#3498db','#e74c3c','#a9a9a9','#ffcc00','#009933']
+plt.pie(x=Inten, labels=None, colors = colores, explode = (0.1,0.1,0.1,0.1,0.1), 
+        startangle=90, radius=1.2, autopct='%1.2f%%', shadow=True)
+plt.legend(traficSip,bbox_to_anchor=(1.5, 0.65))
+plt.title('Causas SIP Globales', weight='bold', size=14)
+#plt.savefig('TraficoSIP'+'.png')
+plt.show()
